@@ -1,3 +1,4 @@
+import React from "react";
 import config from "../config.json";
 import styled from "styled-components";
 import { CSSReset } from "../src/components/CSSReset";
@@ -9,7 +10,7 @@ function HomePage() {
         // backgroundColor: "red" 
     };
 
-    // console.log(config.playlists);
+    const [valorDoFiltro, setValorDoFiltro] = React.useState("");
 
     return (
         <>
@@ -20,9 +21,10 @@ function HomePage() {
                 flex: 1,
                 // backgroundColor: "red",
             }}>
-                <Menu />
+                {/* Prop Drilling */}
+                <Menu valorDoFiltro={valorDoFiltro} setValorDoFiltro={setValorDoFiltro} />
                 <Header />
-                <Timeline playlists={config.playlists}>
+                <Timeline searchValue={valorDoFiltro} playlists={config.playlists}>
                     Conteúdo
                 </Timeline>
             </div>
@@ -30,7 +32,7 @@ function HomePage() {
     );
 }
 
-export default HomePage
+export default HomePage // exporta por padrão para o browser
 
 // function Menu() {
 //     return (
@@ -48,20 +50,29 @@ const StyledHeader = styled.div`
         border-radius: 50%;
     }
     .user-info {
-        margin-top: 50px;
         display: flex;
         align-items: center;
         width: 100%;
         padding: 16px 32px;
         gap: 16px;
     }
+    .banner{
+        width: 100%;
+        height: 230px;
+    }
+`;
+const StyledBanner = styled.div`
+    background-color: blue;
+    background-image: url(${({ bg }) => bg});
+    /* background-image: url(${config.bg}); e la embaixo <StyledBanner bg={bg} /> */
+    height: 230px;
 `;
 function Header() {
     return (
         <StyledHeader>
-            {/* <img src="banner" /> */}
+            <StyledBanner bg={config.bg} />
             <section className="user-info">
-                <img src={`https://github.com/${config.github}.png`} />
+                <img src={`https://github.com/${config.github}.png`} className="user-picture" />
                 <div>
                     <h2>
                         {config.name}
@@ -75,7 +86,7 @@ function Header() {
     )
 }
 
-function Timeline(propriedades) {
+function Timeline({searchValue, ...propriedades}) {
     // console.log("Dentro do componente", propriedades.playlists);
     const playlistNames = Object.keys(propriedades.playlists);
     // Statement
@@ -84,22 +95,26 @@ function Timeline(propriedades) {
         <StyledTimeline>
             {playlistNames.map(function(playlistName) {
                 const videos = propriedades.playlists[playlistName];
-                console.log(playlistName);
-                console.log(videos);
+                // console.log(playlistName);
+                // console.log(videos);
                 return (
-                    <section>
+                    <section key={playlistName}>
                         <h2>{playlistName}</h2>
                         <div>
-                            {videos.map((video) => {
-                                return (
-                                    <a href={video.url}>
-                                        <img src={video.thumb} />
-                                        <span>
-                                            {video.title}
-                                        </span>
-                                    </a>
-                                )
-                            })}
+                        {videos.filter((video) => {
+                                    const titleNormalized = video.title.toLowerCase();
+                                    const searchValueNormalized = searchValue.toLowerCase();
+                                    return titleNormalized.includes(searchValueNormalized)
+                                }).map((video) => {
+                                    return (
+                                        <a key={video.url} href={video.url}>
+                                            <img src={video.thumb} />
+                                            <span>
+                                                {video.title}
+                                            </span>
+                                        </a>
+                                    )
+                                })}
                         </div>
                     </section>
                 )
